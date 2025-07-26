@@ -1,0 +1,461 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum SubscriptionPlan {
+  STARTER
+  BUSINESS
+  ENTERPRISE
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum MessageType {
+  PROMOTIONAL
+  TRANSACTIONAL
+  INFORMATIONAL
+  OTP
+}
+
+enum MessageStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SCHEDULED
+  SENDING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum ContactStatus {
+  ACTIVE
+  INACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum TransactionType {
+  CREDIT_PURCHASE
+  CREDIT_USAGE
+  REFUND
+  BONUS
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id                String     @id @default(uuid())
+  email             String     @unique
+  password          String
+  firstName         String
+  lastName          String
+  phone             String?
+  role              UserRole   @default(CUSTOMER)
+  status            UserStatus @default(PENDING_VERIFICATION)
+  emailVerified     Boolean    @default(false)
+  emailVerifiedAt   DateTime?
+  lastLoginAt       DateTime?
+  profileImage      String?
+  timezone          String     @default("UTC")
+  language          String     @default("en")
+  twoFactorEnabled  Boolean    @default(false)
+  twoFactorSecret   String?
+  
+
+  companyName       String?
+  companyAddress    String?
+  companyPhone      String?
+  companyWebsite    String?
+  
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  createdBy         String?
+  
+ 
+  subscription      Subscription?
+  senderNames       SenderName[]
+  contacts          Contact[]
+  contactLists      ContactList[]
+  messages          Message[]
+  campaigns         Campaign[]
+  templates         MessageTemplate[]
+  transactions      Transaction[]
+  apiKeys           ApiKey[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  
+  createdByUser     User?      @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  createdUsers      User[]     @relation("UserCreatedBy")
+  
+  @@map("users")
+}
+
+model Subscription {
+  id                String             @id @default(uuid())
+  userId            String             @unique
+  plan              SubscriptionPlan
+  status            SubscriptionStatus @default(PENDING)
+  credits           Int                @default(0)
+  usedCredits       Int                @default(0)
+  monthlyLimit      Int?
+  startDate         DateTime           @default(now())
+  endDate           DateTime?
+  autoRenew         Boolean            @default(true)
+  billingCycle      String             @default("monthly") // monthly, yearly
+  pricePerCredit    Decimal            @default(0.05)
+  
+  // Metadata
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("subscriptions")
+}
+
+model SenderName {
+  id                String        @id @default(uuid())
+  userId            String
+  name              String        
+  description       String?
+  messageType       MessageType
+  status            MessageStatus @default(PENDING_APPROVAL)
+  approvedAt        DateTime?
+  approvedBy        String?
+  rejectedAt        DateTime?
+  rejectedBy        String?
+  rejectionReason   String?
+  
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages          Message[]
+  campaigns         Campaign[]
+  
+  @@unique([userId, name])
+  @@map("sender_names")
+}
+
+model Contact {
+  id                String        @id @default(uuid())
+  userId            String
+  phone             String
+  firstName         String?
+  lastName          String?
+  email             String?
+  status            ContactStatus @default(ACTIVE)
+  tags              String[]      @default([])
+  customFields      Json?         // Flexible custom data
+  unsubscribedAt    DateTime?
+  
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lists             ContactListMember[]
+  messageRecipients MessageRecipient[]
+  
+  @@unique([userId, phone])
+  @@map("contacts")
+}
+
+model ContactList {
+  id                String              @id @default(uuid())
+  userId            String
+  name              String
+  description       String?
+  tags              String[]            @default([])
+  
+ 
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+ 
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members           ContactListMember[]
+  campaigns         Campaign[]
+  
+  @@unique([userId, name])
+  @@map("contact_lists")
+}
+
+model ContactListMember {
+  id                String      @id @default(uuid())
+  contactListId     String
+  contactId         String
+  addedAt           DateTime    @default(now())
+  
+ 
+  contactList       ContactList @relation(fields: [contactListId], references: [id], onDelete: Cascade)
+  contact           Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  @@unique([contactListId, contactId])
+  @@map("contact_list_members")
+}
+
+model MessageTemplate {
+  id                String      @id @default(uuid())
+  userId            String
+  name              String
+  content           String
+  messageType       MessageType
+  category          String?    
+  variables         String[]    @default([]) 
+  
+  // Metadata
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages          Message[]
+  
+  @@unique([userId, name])
+  @@map("message_templates")
+}
+
+model Message {
+  id                String             @id @default(uuid())
+  userId            String
+  senderNameId      String?
+  templateId        String?
+  content           String
+  messageType       MessageType
+  status            MessageStatus      @default(DRAFT)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  
+  // Approval workflow
+  submittedForApprovalAt DateTime?
+  approvedAt        DateTime?
+  approvedBy        String?
+  rejectedAt        DateTime?
+  rejectedBy        String?
+  rejectionReason   String?
+  
+  // Analytics
+  totalRecipients   Int                @default(0)
+  deliveredCount    Int                @default(0)
+  failedCount       Int                @default(0)
+  creditsUsed       Int                @default(0)
+  
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderName        SenderName?        @relation(fields: [senderNameId], references: [id])
+  template          MessageTemplate?   @relation(fields: [templateId], references: [id])
+  recipients        MessageRecipient[]
+  campaign          Campaign?          @relation(fields: [campaignId], references: [id])
+  campaignId        String?
+  
+  @@map("messages")
+}
+
+model MessageRecipient {
+  id                String        @id @default(uuid())
+  messageId         String
+  contactId         String?
+  phone             String        // Denormalized for performance
+  firstName         String?       // Denormalized for personalization
+  lastName          String?       // Denormalized for personalization
+  status            MessageStatus @default(SCHEDULED)
+  deliveredAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  creditsUsed       Int           @default(1)
+  
+
+  carrier           String?
+  country           String?
+  
+  // Metadata
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  message           Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  contact           Contact?      @relation(fields: [contactId], references: [id])
+  
+  @@map("message_recipients")
+}
+
+model Campaign {
+  id                String         @id @default(uuid())
+  userId            String
+  senderNameId      String?
+  name              String
+  description       String?
+  status            CampaignStatus @default(DRAFT)
+  messageContent    String
+  messageType       MessageType
+  scheduledAt       DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  
+  // Analytics
+  totalRecipients   Int            @default(0)
+  deliveredCount    Int            @default(0)
+  failedCount       Int            @default(0)
+  creditsUsed       Int            @default(0)
+  
+  // Metadata
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderName        SenderName?    @relation(fields: [senderNameId], references: [id])
+  contactLists      ContactList[]
+  messages          Message[]
+  
+  @@map("campaigns")
+}
+
+model Transaction {
+  id                String            @id @default(uuid())
+  userId            String
+  type              TransactionType
+  status            TransactionStatus @default(PENDING)
+  amount            Decimal           // Monetary amount
+  credits           Int               // Credit amount
+  description       String
+  reference         String?           // External reference (payment gateway, etc.)
+  metadata          Json?             // Additional transaction data
+  
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("transactions")
+}
+
+model ApiKey {
+  id                String    @id @default(uuid())
+  userId            String
+  name              String
+  key               String    @unique
+  permissions       String[]  @default([]) // e.g., ["messages:send", "contacts:read"]
+  isActive          Boolean   @default(true)
+  lastUsedAt        DateTime?
+  expiresAt         DateTime?
+  
+
+  rateLimit         Int       @default(1000) // Requests per hour
+  
+  // Metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("api_keys")
+}
+
+model AuditLog {
+  id                String    @id @default(uuid())
+  userId            String?
+  action            String    // e.g., "user.created", "message.sent"
+  resource          String?   // Resource type (user, message, etc.)
+  resourceId        String?   // Resource ID
+  details           Json?     // Additional details
+  ipAddress         String?
+  userAgent         String?
+  
+ 
+  createdAt         DateTime  @default(now())
+  
+  // Relations
+  user              User?     @relation(fields: [userId], references: [id])
+  
+  @@map("audit_logs")
+}
+
+model Notification {
+  id                String    @id @default(uuid())
+  userId            String
+  title             String
+  message           String
+  type              String    @default("info") // info, success, warning, error
+  isRead            Boolean   @default(false)
+  readAt            DateTime?
+  data              Json?     // Additional notification data
+  
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+model SystemSetting {
+  id                String    @id @default(uuid())
+  key               String    @unique
+  value             String
+  description       String?
+  category          String    @default("general")
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("system_settings")
+}
