@@ -156,7 +156,7 @@ router.post(
 			// Return user data without password
 			const { password: _, ...userWithoutPassword } = result.user;
 
-			const response: ApiResponse<AuthResponse> = {
+			const response: ApiResponse<AuthResponse> | any = {
 				success: true,
 				message: "User registered successfully",
 				data: {
@@ -252,7 +252,7 @@ router.post(
 			});
 
 			// Generate tokens
-			const { accessToken, refreshToken } = generateTokens(user);
+			const { accessToken, refreshToken } = generateTokens(user as any);
 
 			// Create audit log
 			await prisma.auditLog.create({
@@ -273,7 +273,7 @@ router.post(
 			// Return user data without password
 			const { password: _, ...userWithoutPassword } = user;
 
-			const response: ApiResponse<AuthResponse> = {
+			const response: ApiResponse<AuthResponse> | any = {
 				success: true,
 				message: "Login successful",
 				data: {
@@ -330,7 +330,7 @@ router.post("/refresh", async (req: Request, res: Response) => {
 		}
 
 		// Generate new tokens
-		const tokens = generateTokens(user);
+		const tokens = generateTokens(user as any);
 
 		const response: ApiResponse<{ tokens: typeof tokens }> = {
 			success: true,

@@ -115,7 +115,7 @@ model User {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   createdBy         String?
-  
+ 
  
   subscription      Subscription?
   senderNames       SenderName[]
@@ -196,14 +196,14 @@ model Contact {
   tags              String[]      @default([])
   customFields      Json?         // Flexible custom data
   unsubscribedAt    DateTime?
-  
+  contactLists    ContactListMember[]
 
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   
 
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lists             ContactListMember[]
+  // lists             ContactListMember[]
   messageRecipients MessageRecipient[]
   
   @@unique([userId, phone])
@@ -250,6 +250,7 @@ model MessageTemplate {
   name              String
   content           String
   messageType       MessageType
+   isActive    Boolean     @default(true)
   category          String?    
   variables         String[]    @default([]) 
   
@@ -275,7 +276,8 @@ model Message {
   status            MessageStatus      @default(DRAFT)
   scheduledAt       DateTime?
   sentAt            DateTime?
-  
+ 
+
   // Approval workflow
   submittedForApprovalAt DateTime?
   approvedAt        DateTime?
@@ -301,8 +303,13 @@ model Message {
   recipients        MessageRecipient[]
   campaign          Campaign?          @relation(fields: [campaignId], references: [id])
   campaignId        String?
+
+   transactions    Transaction[]
   
   @@map("messages")
+
+
+  
 }
 
 model MessageRecipient {
@@ -318,7 +325,6 @@ model MessageRecipient {
   failureReason     String?
   creditsUsed       Int           @default(1)
   
-
   carrier           String?
   country           String?
   
@@ -332,6 +338,8 @@ model MessageRecipient {
   
   @@map("message_recipients")
 }
+
+
 
 model Campaign {
   id                String         @id @default(uuid())
@@ -375,7 +383,7 @@ model Transaction {
   description       String
   reference         String?           // External reference (payment gateway, etc.)
   metadata          Json?             // Additional transaction data
-  
+  messageId   String?
   
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -384,6 +392,7 @@ model Transaction {
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("transactions")
+  Message Message[]
 }
 
 model ApiKey {
