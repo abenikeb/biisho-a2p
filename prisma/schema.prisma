@@ -185,63 +185,125 @@ model SenderName {
   @@map("sender_names")
 }
 
+
 model Contact {
-  id                String        @id @default(uuid())
-  userId            String
-  phone             String
-  firstName         String?
-  lastName          String?
-  email             String?
-  status            ContactStatus @default(ACTIVE)
-  tags              String[]      @default([])
-  customFields      Json?         // Flexible custom data
-  unsubscribedAt    DateTime?
-  contactLists    ContactListMember[]
+  id              String   @id @default(cuid())
+  phone           String
+  firstName       String?
+  lastName        String?
+  email           String?
+  status          ContactStatus @default(ACTIVE)
+  tags            String[]
+  customFields    Json     @default("{}")
+  lastContactedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  userId          String
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
+  // Relations
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contactLists ContactListMember[]
+  messages     MessageRecipient[]
 
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // lists             ContactListMember[]
-  messageRecipients MessageRecipient[]
-  
-  @@unique([userId, phone])
+  @@unique([phone, userId])
   @@map("contacts")
 }
 
 model ContactList {
-  id                String              @id @default(uuid())
-  userId            String
-  name              String
-  description       String?
-  tags              String[]            @default([])
-  
- 
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  
- 
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  members           ContactListMember[]
-  campaigns         Campaign[]
-  
-  @@unique([userId, name])
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  contactCount Int           @default(0)
+  status       ContactListStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String
+
+  // Relations
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts ContactListMember[]
+  messages Message[]
+
   @@map("contact_lists")
+  Campaign Campaign[]
 }
 
 model ContactListMember {
-  id                String      @id @default(uuid())
-  contactListId     String
-  contactId         String
-  addedAt           DateTime    @default(now())
+  id        String   @id @default(cuid())
+  contactId String
+  listId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  contact Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  list    ContactList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, listId])
+  @@map("contact_list_members")
+}
+// model Contact {
+//   id                String        @id @default(uuid())
+//   userId            String
+//   phone             String
+//   firstName         String?
+//   lastName          String?
+//   email             String?
+//   status            ContactStatus @default(ACTIVE)
+//   tags              String[]      @default([])
+//   customFields      Json?         
+//   unsubscribedAt    DateTime?
+//   contactLists      ContactListMember[]
+
+//   createdAt         DateTime      @default(now())
+//   updatedAt         DateTime      @updatedAt
+  
+
+//   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   // lists             ContactListMember[]
+//   messageRecipients MessageRecipient[]
+  
+//   @@unique([userId, phone])
+//   @@map("contacts")
+// }
+
+// model ContactList {
+//   id                String              @id @default(uuid())
+//   userId            String
+//   name              String
+//   description       String?
+//   tags              String[]            @default([])
   
  
-  contactList       ContactList @relation(fields: [contactListId], references: [id], onDelete: Cascade)
-  contact           Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+//   createdAt         DateTime            @default(now())
+//   updatedAt         DateTime            @updatedAt
   
-  @@unique([contactListId, contactId])
-  @@map("contact_list_members")
+ 
+//   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   members           ContactListMember[]
+//   campaigns         Campaign[]
+  
+//   @@unique([userId, name])
+//   @@map("contact_lists")
+// }
+
+// model ContactListMember {
+//   id                String      @id @default(uuid())
+//   contactListId     String
+//   contactId         String
+//   addedAt           DateTime    @default(now())
+  
+ 
+//   contactList       ContactList @relation(fields: [contactListId], references: [id], onDelete: Cascade)
+//   contact           Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+//   @@unique([contactListId, contactId])
+//   @@map("contact_list_members")
+// }
+
+enum ContactListStatus {
+  ACTIVE
+  INACTIVE
 }
 
 model MessageTemplate {
@@ -250,7 +312,7 @@ model MessageTemplate {
   name              String
   content           String
   messageType       MessageType
-   isActive    Boolean     @default(true)
+  isActive    Boolean     @default(true)
   category          String?    
   variables         String[]    @default([]) 
   
@@ -310,6 +372,7 @@ model Message {
 
 
   
+  ContactList ContactList[]
 }
 
 model MessageRecipient {
@@ -337,9 +400,7 @@ model MessageRecipient {
   contact           Contact?      @relation(fields: [contactId], references: [id])
   
   @@map("message_recipients")
-}
-
-
+}  
 
 model Campaign {
   id                String         @id @default(uuid())
