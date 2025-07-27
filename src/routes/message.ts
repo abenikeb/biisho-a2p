@@ -53,7 +53,7 @@ const getRecipientsFromLists = async (
 			status: "ACTIVE",
 			contactLists: {
 				some: {
-					contactList: {
+					list: {
 						id: {
 							in: contactListIds,
 						},
@@ -117,9 +117,9 @@ router.get(
 				campaignId,
 			}: MessageFilters = req.query as any;
 
-			console.log({
-				req: req.query,
-			});
+			// console.log({
+			// 	req: req.query,
+			// });
 
 			const skip = (Number(page) - 1) * Number(limit);
 
@@ -437,7 +437,7 @@ router.post(
 						phone: recipient.phone,
 						firstName: recipient.firstName,
 						lastName: recipient.lastName,
-						status: "PENDING",
+						status: "PENDING_APPROVAL",
 					})),
 				});
 
