@@ -171,14 +171,14 @@ router.post(
 				},
 			};
 
-			res.status(201).json(response);
+			return res.status(201).json(response);
 		} catch (error: any) {
 			console.error("Registration error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Internal server error during registration",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -285,14 +285,14 @@ router.post(
 				},
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Login error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Internal server error during login",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -340,14 +340,14 @@ router.post("/refresh", async (req: Request, res: Response) => {
 			},
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Token refresh error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Invalid refresh token",
 		};
-		res.status(401).json(response);
+		return res.status(401).json(response);
 	}
 });
 
@@ -401,7 +401,7 @@ router.get("/me", async (req: Request, res: Response) => {
 			},
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Get user error:", error);
 		if (error.name === "JsonWebTokenError") {
@@ -415,7 +415,7 @@ router.get("/me", async (req: Request, res: Response) => {
 			success: false,
 			message: "Internal server error",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -453,14 +453,14 @@ router.post("/logout", async (req: Request, res: Response) => {
 			message: "Logged out successfully",
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Logout error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Internal server error during logout",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -503,14 +503,14 @@ router.post(
 				message: "Email verified successfully",
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Email verification error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Invalid verification token",
 			};
-			res.status(400).json(response);
+			return res.status(400).json(response);
 		}
 	}
 );
@@ -567,14 +567,14 @@ router.post(
 					"If an account with that email exists, a password reset link has been sent.",
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Password reset request error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Internal server error",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -618,7 +618,7 @@ router.post(
 				message: "Password reset successfully",
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Password reset error:", error);
 			if (error.name === "JsonWebTokenError") {
@@ -632,7 +632,7 @@ router.post(
 				success: false,
 				message: "Internal server error",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );

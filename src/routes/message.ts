@@ -202,14 +202,14 @@ router.get(
 				},
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Get messages error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Failed to retrieve messages",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -265,14 +265,14 @@ router.get("/:id", async (req: Request, res: Response) => {
 			data: message as any,
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Get message error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to retrieve message",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -466,14 +466,14 @@ router.post(
 				data: result as Message,
 			};
 
-			res.status(201).json(response);
+			return res.status(201).json(response);
 		} catch (error: any) {
 			console.error("Create message error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Failed to create message",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -576,14 +576,14 @@ router.put(
 				data: updatedMessage as Message,
 			};
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Update message error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Failed to update message",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -648,14 +648,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
 			message: "Message deleted successfully",
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Delete message error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to delete message",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -849,14 +849,14 @@ router.post("/:id/send", async (req: Request, res: Response) => {
 			data: result as Message,
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Send message error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to send message",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -925,14 +925,14 @@ router.get("/:id/analytics", async (req: Request, res: Response) => {
 			data: analytics,
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Get message analytics error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to retrieve message analytics",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -977,14 +977,14 @@ router.get("/scheduled/list", async (req: Request, res: Response) => {
 			},
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Get scheduled messages error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to retrieve scheduled messages",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -1012,14 +1012,14 @@ router.get("/templates/list", async (req: Request, res: Response) => {
 			},
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Get templates error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to retrieve templates",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
@@ -1092,14 +1092,14 @@ router.post(
 				data: template,
 			} as any;
 
-			res.status(201).json(response);
+			return res.status(201).json(response);
 		} catch (error: any) {
 			console.error("Create template error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Failed to create template",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -1173,14 +1173,14 @@ router.put(
 				data: updatedTemplate,
 			} as any;
 
-			res.json(response);
+			return res.json(response);
 		} catch (error: any) {
 			console.error("Update template error:", error);
 			const response: ApiResponse = {
 				success: false,
 				message: "Failed to update template",
 			};
-			res.status(500).json(response);
+			return res.status(500).json(response);
 		}
 	}
 );
@@ -1234,14 +1234,14 @@ router.delete("/templates/:id", async (req: Request, res: Response) => {
 			message: "Template deleted successfully",
 		};
 
-		res.json(response);
+		return res.json(response);
 	} catch (error: any) {
 		console.error("Delete template error:", error);
 		const response: ApiResponse = {
 			success: false,
 			message: "Failed to delete template",
 		};
-		res.status(500).json(response);
+		return res.status(500).json(response);
 	}
 });
 
